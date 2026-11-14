@@ -1,3 +1,4 @@
+
 name: Build Catatan Minan APK
 
 on:
@@ -53,13 +54,34 @@ jobs:
               }
           """, 1)
 
-          s = re.sub(r"jvmTarget\s*=\s*['\"](?:1\.8|11|17)['\"]",
-                     "jvmTarget = '17'", s)
+          s = re.sub(
+              r"jvmTarget\s*=\s*['\"](?:1\.8|11|17)['\"]",
+              "jvmTarget = '17'",
+              s
+          )
+
+          with open(p, "w") as f:
+              f.write(s)
+          PY
+
+      - name: Fix hintTextColor errors
+        working-directory: CatatanMinanBaru
+        run: |
+          python3 - <<'PY'
+          p = "app/src/main/java/com/minan/catatan/MainActivity.kt"
+
+          with open(p) as f:
+              s = f.read()
+
+          s = s.replace(
+              "hintTextColor",
+              "setHintTextColor"
+          )
 
           with open(p, "w") as f:
               f.write(s)
 
-          print("Java dan Kotlin target 17")
+          print("Pemeriksaan hintTextColor selesai")
           PY
 
       - name: Build APK
@@ -71,4 +93,4 @@ jobs:
         with:
           name: Catatan-Minan-APK
           path: CatatanMinanBaru/app/build/outputs/apk/debug/app-debug.apk
-          
+          if-no-files-found: error
