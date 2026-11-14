@@ -64,7 +64,42 @@ jobs:
               f.write(s)
           PY
 
-      - name: Fix hintTextColor errors
+      
+      - name: Inspect and fix hintTextColor
+        working-directory: CatatanMinanBaru
+        run: |
+          python3 - <<'PY'
+          import re
+
+          p = "app/src/main/java/com/minan/catatan/MainActivity.kt"
+
+          with open(p) as f:
+              s = f.read()
+
+          print("=== KODE SEBELUM PERBAIKAN ===")
+          for i, line in enumerate(s.splitlines(), 1):
+              if i in (83, 85):
+                  print(f"{i}: {line}")
+
+          # Perbaiki pola assignment yang salah
+          s = re.sub(
+              r'\.setHintTextColor\s*=\s*([^,\n)]+)',
+              r'.setHintTextColor(\1)',
+              s
+          )
+
+          s = re.sub(
+              r'\.hintTextColor\s*=\s*([^,\n)]+)',
+              r'.setHintTextColor(\1)',
+              s
+          )
+
+          with open(p, "w") as f:
+              f.write(s)
+
+          print("=== PERBAIKAN SELESAI ===")
+          PY
+
         working-directory: CatatanMinanBaru
         run: |
           python3 - <<'PY'
