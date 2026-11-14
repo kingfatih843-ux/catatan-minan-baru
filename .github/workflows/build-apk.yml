@@ -84,6 +84,14 @@ jobs:
           print("Pemeriksaan hintTextColor selesai")
           PY
 
+      - name: Show Kotlin error source
+        working-directory: CatatanMinanBaru
+        run: |
+          echo "===== BARIS 80-87 ====="
+          sed -n '80,87p' app/src/main/java/com/minan/catatan/MainActivity.kt
+          echo "===== KONTEKS HINT COLOR ====="
+          grep -n -C 2 "HintTextColor\|hintTextColor" app/src/main/java/com/minan/catatan/MainActivity.kt
+
       - name: Build APK
         working-directory: CatatanMinanBaru
         run: gradle :app:assembleDebug
