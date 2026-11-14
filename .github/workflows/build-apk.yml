@@ -1,3 +1,32 @@
+name: Build Catatan Minan APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Extract project ZIP
+        run: unzip -o Catatan_Minan_Aplikasi_Baru.zip
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
 
       - name: Fix Java and Kotlin targets
         working-directory: CatatanMinanBaru
@@ -6,52 +35,40 @@
           import re
 
           p = "app/build.gradle"
-
-          with open(p, "r") as f:
+          with open(p) as f:
               s = f.read()
 
-          if "android {" not in s:
-              raise Exception("Blok android tidak ditemukan di app/build.gradle")
-
           if "compileOptions {" not in s:
-              s = s.replace(
-                  "android {",
-                  """android {
+              s = s.replace("android {", """android {
               compileOptions {
                   sourceCompatibility JavaVersion.VERSION_17
                   targetCompatibility JavaVersion.VERSION_17
               }
-          """,
-                  1
-              )
+          """, 1)
 
           if "kotlinOptions {" not in s:
-              s = re.sub(
-                  r'android\s*\{',
-                  """android {
+              s = s.replace("android {", """android {
               kotlinOptions {
                   jvmTarget = '17'
               }
-          """,
-                  s,
-                  count=1
-              )
+          """, 1)
 
-          s = re.sub(
-              r"sourceCompatibility\s+JavaVersion\.VERSION_\\d+",
-              "sourceCompatibility JavaVersion.VERSION_17", s
-          )
-          s = re.sub(
-              r"targetCompatibility\s+JavaVersion\.VERSION_\\d+",
-              "targetCompatibility JavaVersion.VERSION_17", s
-          )
-          s = re.sub(
-              r"jvmTarget\s*=\s*['\\"]1\\.8['\\"]",
-              "jvmTarget = '17'", s
-          )
+          s = re.sub(r"jvmTarget\s*=\s*['\"](?:1\.8|11|17)['\"]",
+                     "jvmTarget = '17'", s)
 
           with open(p, "w") as f:
               f.write(s)
 
-          print("Konfigurasi Java dan Kotlin sudah diperiksa.")
+          print("Java dan Kotlin target 17")
           PY
+
+      - name: Build APK
+        working-directory: CatatanMinanBaru
+        run: gradle :app:assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Catatan-Minan-APK
+          path: CatatanMinanBaru/app/build/outputs/apk/debug/app-debug.apk
+          
