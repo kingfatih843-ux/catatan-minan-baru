@@ -1,31 +1,57 @@
 
-plugins {
-    id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
-}
+      - name: Fix Java and Kotlin targets
+        working-directory: CatatanMinanBaru
+        run: |
+          python3 - <<'PY'
+          import re
 
-android {
-    namespace 'com.minan.catatan'
-    compileSdk 35
+          p = "app/build.gradle"
 
-    defaultConfig {
-        applicationId 'com.minan.catatan'
-        minSdk 23
-        targetSdk 35
-        versionCode 1
-        versionName '1.0'
-    }
+          with open(p, "r") as f:
+              s = f.read()
 
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
+          if "android {" not in s:
+              raise Exception("Blok android tidak ditemukan di app/build.gradle")
 
-    kotlinOptions {
-        jvmTarget = '17'
-    }
-}
+          if "compileOptions {" not in s:
+              s = s.replace(
+                  "android {",
+                  """android {
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+          """,
+                  1
+              )
 
-dependencies {
-    implementation 'androidx.core:core-ktx:1.15.0'
-}
+          if "kotlinOptions {" not in s:
+              s = re.sub(
+                  r'android\s*\{',
+                  """android {
+              kotlinOptions {
+                  jvmTarget = '17'
+              }
+          """,
+                  s,
+                  count=1
+              )
+
+          s = re.sub(
+              r"sourceCompatibility\s+JavaVersion\.VERSION_\\d+",
+              "sourceCompatibility JavaVersion.VERSION_17", s
+          )
+          s = re.sub(
+              r"targetCompatibility\s+JavaVersion\.VERSION_\\d+",
+              "targetCompatibility JavaVersion.VERSION_17", s
+          )
+          s = re.sub(
+              r"jvmTarget\s*=\s*['\\"]1\\.8['\\"]",
+              "jvmTarget = '17'", s
+          )
+
+          with open(p, "w") as f:
+              f.write(s)
+
+          print("Konfigurasi Java dan Kotlin sudah diperiksa.")
+          PY
