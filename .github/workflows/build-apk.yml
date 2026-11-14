@@ -94,3 +94,9 @@ jobs:
           name: Catatan-Minan-APK
           path: CatatanMinanBaru/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+      - name: Debug MainActivity Kotlin
+        working-directory: CatatanMinanBaru
+        run: |
+          echo "=== MainActivity.kt baris 78-90 ==="
+          nl -ba app/src/main/java/com/minan/catatan/MainActivity.kt | sed -n '78,90p'
+
